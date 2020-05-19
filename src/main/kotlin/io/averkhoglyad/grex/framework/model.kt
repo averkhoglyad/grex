@@ -17,3 +17,10 @@ interface BoardUnit<S> {
     val boundary: Pair<Point, Point>
 }
 
+interface Command {
+    fun compile(): Iterable<CodePoint>
+}
+
+data class Program(val code: List<CodePoint>)
+
+open class ExecutionException(message: String? = null) : Exception(message)

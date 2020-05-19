@@ -109,7 +109,7 @@ interface UnitModification {
 
 sealed class BoardAct<H : Hero<S>, S> {
 
-    class DoNothing<H : Hero<S>, S> : BoardAct<H, S>()
+    class NoAct<H : Hero<S>, S> : BoardAct<H, S>()
     class PlaceAct<H : Hero<S>, S>(val unit: BoardUnit<*>) : BoardAct<H, S>()
     class MoveAct<H : Hero<S>, S>(val unit: BoardUnit<*>, val point: Point) : BoardAct<H, S>()
     class RotateAct<H : Hero<S>, S>(val unit: BoardUnit<*>, val direction: Direction) : BoardAct<H, S>()
