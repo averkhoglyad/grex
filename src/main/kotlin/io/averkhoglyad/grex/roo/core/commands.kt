@@ -2,14 +2,15 @@ package io.averkhoglyad.grex.roo.core
 
 import io.averkhoglyad.grex.framework.*
 
+// TODO: Create sealed class for simple commands and for statement
 typealias RooCommand = Command
 
 enum class AtomicCommand : RooCommand {
 
     JUMP {
         override fun compile(): Iterable<CodePoint> {
-            val code: CodePoint = BoardModify<Roo, RooState> {
-                val point = board.hero.step()
+            val code: CodePoint = BoardModify {
+                val point = (board as RooBoard).hero.step()
                 if (point !in board) {
                     throw CollisionException()
                 }
@@ -26,8 +27,8 @@ enum class AtomicCommand : RooCommand {
 
     STEP {
         override fun compile(): Iterable<CodePoint> {
-            val code: CodePoint = BoardModify<Roo, RooState> {
-                val point = board.hero.step()
+            val code: CodePoint = BoardModify {
+                val point = (board as RooBoard).hero.step()
                 if (point !in board) {
                     throw CollisionException()
                 }
@@ -48,7 +49,7 @@ enum class AtomicCommand : RooCommand {
     TURN {
         override fun compile(): Iterable<CodePoint> {
             val code: CodePoint = BoardModify<Roo, RooState> {
-                board.modify {
+                (board as RooBoard).modify {
                     hero {
                         rotate(board.hero.turn())
                     }
@@ -59,12 +60,12 @@ enum class AtomicCommand : RooCommand {
     };
 }
 
-enum class BorderCondition : Condition<ExecutionFrame<Roo, RooState>> {
+enum class BorderCondition : Condition<ExecutionFrame> {
     IS_BORDER {
-        override fun test(frame: ExecutionFrame<Roo, RooState>): Boolean = frame.board.hero.step() !in frame.board
+        override fun test(frame: ExecutionFrame): Boolean = (frame.board as RooBoard).hero.step() !in frame.board
     },
     IS_NOT_BORDER {
-        override fun test(frame: ExecutionFrame<Roo, RooState>): Boolean = frame.board.hero.step() in frame.board
+        override fun test(frame: ExecutionFrame): Boolean = (frame.board as RooBoard).hero.step() in frame.board
     }
 }
 

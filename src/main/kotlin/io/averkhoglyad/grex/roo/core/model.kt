@@ -1,6 +1,5 @@
 package io.averkhoglyad.grex.roo.core
 
-import io.averkhoglyad.grex.core.api.*
 import io.averkhoglyad.grex.framework.*
 
 typealias Roo = Hero<RooState>
