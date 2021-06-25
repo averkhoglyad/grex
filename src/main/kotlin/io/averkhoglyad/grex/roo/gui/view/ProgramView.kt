@@ -1,6 +1,6 @@
 package io.averkhoglyad.grex.roo.gui.view
 
-import io.averkhoglyad.grex.roo.core.AtomicCommand
+import io.averkhoglyad.grex.roo.core.RooCommand
 import javafx.beans.property.SimpleListProperty
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
@@ -8,7 +8,7 @@ import tornadofx.*
 
 class ProgramView : View() {
 
-    val programProperty = SimpleListProperty<AtomicCommand>(observableListOf())
+    val programProperty = SimpleListProperty<RooCommand>(observableListOf())
     var program by programProperty
 
     override val root = hbox {
@@ -17,9 +17,9 @@ class ProgramView : View() {
             val list = this
             cellFormat { cmd ->
                 text = when (cmd) {
-                    AtomicCommand.JUMP -> "${this.index}. Прыжок"
-                    AtomicCommand.STEP -> "${this.index}. Шаг"
-                    AtomicCommand.TURN -> "${this.index}. Поворот"
+                    RooCommand.Jump -> "${this.index + 1}. Прыжок"
+                    RooCommand.Step -> "${this.index + 1}. Шаг"
+                    RooCommand.Turn -> "${this.index + 1}. Поворот"
                 }
             }
             setOnKeyPressed { keyEvent: KeyEvent ->
@@ -30,15 +30,15 @@ class ProgramView : View() {
                 }
                 when (keyEvent.code) {
                     KeyCode.F2 -> {
-                        program.add(targetPosition, AtomicCommand.JUMP)
+                        program.add(targetPosition, RooCommand.Jump)
                         list.selectionModel.select(targetPosition + 1)
                     }
                     KeyCode.F3 -> {
-                        program.add(targetPosition, AtomicCommand.STEP)
+                        program.add(targetPosition, RooCommand.Step)
                         list.selectionModel.select(targetPosition + 1)
                     }
                     KeyCode.F4 -> {
-                        program.add(targetPosition, AtomicCommand.TURN)
+                        program.add(targetPosition, RooCommand.Turn)
                         list.selectionModel.select(targetPosition + 1)
                     }
                     KeyCode.DELETE -> if (targetPosition != program.lastIndex) {

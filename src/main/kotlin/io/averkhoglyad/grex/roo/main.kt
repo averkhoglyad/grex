@@ -10,7 +10,6 @@ fun main(args: Array<String>) {
     Application.launch(RooApp::class.java, *args)
 }
 
-
 fun main0() {
     val hero = Roo(Point(0, 0), QuarterDirection.RIGHT, RooState.JUMP)
     val board = BoardImpl(12 to 16, hero)
@@ -22,16 +21,16 @@ fun main0() {
 private fun generateProgram(): Program = program {
     repeat(25) {
         doIf(BorderCondition.IS_NOT_BORDER) {
-            eval(AtomicCommand.STEP)
+            apply(RooCommand.Step.compile)
         } otherwise {
             invoke("turn_right")
         }
     }
 
     define("turn_right") {
-        eval(AtomicCommand.TURN)
-        eval(AtomicCommand.TURN)
-        eval(AtomicCommand.TURN)
+        apply(RooCommand.Turn.compile)
+        apply(RooCommand.Turn.compile)
+        apply(RooCommand.Turn.compile)
     }
 
 //    repeatWhile(BorderCondition.IS_NOT_BORDER) {
@@ -42,23 +41,23 @@ private fun generateProgram(): Program = program {
 //    }
 
     define("corner") {
-        eval(AtomicCommand.STEP)
-        eval(AtomicCommand.JUMP)
-        eval(AtomicCommand.STEP)
-        eval(AtomicCommand.JUMP)
-        eval(AtomicCommand.STEP)
+        apply(RooCommand.Step.compile)
+        apply(RooCommand.Jump.compile)
+        apply(RooCommand.Step.compile)
+        apply(RooCommand.Jump.compile)
+        apply(RooCommand.Step.compile)
 
         invoke("turn_right")
 
-        eval(AtomicCommand.STEP)
-        eval(AtomicCommand.JUMP)
-        eval(AtomicCommand.STEP)
-        eval(AtomicCommand.JUMP)
-        eval(AtomicCommand.STEP)
+        apply(RooCommand.Step.compile)
+        apply(RooCommand.Jump.compile)
+        apply(RooCommand.Step.compile)
+        apply(RooCommand.Jump.compile)
+        apply(RooCommand.Step.compile)
     }
 
     invoke("turn_right")
     invoke("corner")
-    eval(AtomicCommand.JUMP)
+    apply(RooCommand.Jump.compile)
     invoke("corner")
 }

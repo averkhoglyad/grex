@@ -97,7 +97,7 @@ class ExecutionFrame private constructor(val board: Board<*, *>, val returnPoint
 
 sealed class CodePoint
 
-class EmptyPoint() : CodePoint() // Usually used as GoTo target point
+class EmptyPoint : CodePoint() // Usually used as GoTo target point
 
 class GoTo(val point: CodePoint) : CodePoint()
 

@@ -30,6 +30,7 @@ class BoardView : View() {
         fitWidth = HERO_SIZE
         fitHeight = HERO_SIZE
     }
+
     private val boardPane: GridPane = gridpane {
         alignment = Pos.CENTER
         generateCells(board)
@@ -75,7 +76,6 @@ class BoardView : View() {
                         val start = boardPane.findCell(it.from)
                         val end = boardPane.findCell(it.to)
                         positionInto(start, end)
-                        
                     }
                 }
             }

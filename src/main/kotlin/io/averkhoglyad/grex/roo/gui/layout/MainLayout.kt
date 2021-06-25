@@ -1,24 +1,18 @@
 package io.averkhoglyad.grex.roo.gui.layout
 
 import io.averkhoglyad.grex.framework.*
-import io.averkhoglyad.grex.roo.core.AtomicCommand
 import io.averkhoglyad.grex.roo.core.QuarterDirection
 import io.averkhoglyad.grex.roo.core.Roo
 import io.averkhoglyad.grex.roo.core.RooState
-import io.averkhoglyad.grex.roo.gui.util.consumeCloseRequest
 import io.averkhoglyad.grex.roo.gui.view.BoardView
 import io.averkhoglyad.grex.roo.gui.view.ProgramView
-import javafx.beans.property.SimpleListProperty
 import javafx.geometry.Pos
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.launch
 import tornadofx.*
-import java.lang.Exception
 
 class MainLayout : View("Roo") {
 
@@ -68,7 +62,7 @@ class MainLayout : View("Roo") {
         return program {
             programView.program
                     .filterNotNull()
-                    .forEach { eval(it) }
+                    .forEach { cmd -> apply(cmd.compile) }
         }
     }
 
@@ -87,11 +81,3 @@ class MainLayout : View("Roo") {
     }
 
 }
-
-//private fun List<AtomicCommand>.addCommand() {
-//
-//}
-//
-//private fun List<AtomicCommand>.addCommand() {
-//
-//}

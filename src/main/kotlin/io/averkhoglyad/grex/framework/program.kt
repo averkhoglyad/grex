@@ -42,14 +42,12 @@ private class ProgramBuilderImpl : SubprogramBuilderImpl(mutableMapOf()), Progra
     }
 }
 
-//private operator fun <A, B, C> Pair<A, B>.plus(third: C): Triple<A, B, C> = Triple(first, second, third)
-
 private open class SubprogramBuilderImpl(val procedurePoints: MutableMap<String, CodePoint>) : SubprogramBuilder {
 
     val code: MutableList<CodePoint> = mutableListOf()
 
-    override fun eval(cmd: Command) {
-        code += cmd.compile()
+    override fun eval(fn: () -> Iterable<CodePoint>) {
+        code += fn()
     }
 
     override fun invoke(name: String) {
@@ -61,8 +59,7 @@ private open class SubprogramBuilderImpl(val procedurePoints: MutableMap<String,
 
     override fun doIf(condition: Condition<ExecutionFrame>, trueFn: SubprogramBuilder.() -> Unit): DoOtherwise {
         val falsePoint = EmptyPoint()
-        val ifPoint = ConditionalGoTo(condition.invert(), falsePoint)
-        code += ifPoint
+        code += ConditionalGoTo(condition.invert(), falsePoint)
         code += subprogram(procedurePoints, trueFn)
         code += falsePoint
 
@@ -102,7 +99,9 @@ private open class SubprogramBuilderImpl(val procedurePoints: MutableMap<String,
             setVariable(indexName, getVariable(indexName)!! + 1)
         }
 
-        code += subprogram(procedurePoints, fn)
+        val bodyCode = subprogram(procedurePoints, fn)
+
+        code += bodyCode
         code += GoTo(conditionPoint)
         code += falsePoint
     }
@@ -114,7 +113,7 @@ interface ProgramBuilder : SubprogramBuilder {
 
 interface SubprogramBuilder {
 
-    fun eval(cmd: Command)
+    fun eval(fn: () -> Iterable<CodePoint>)
     fun invoke(name: String)
 
     fun doIf(condition: Condition<ExecutionFrame>, trueFn: SubprogramBuilder.() -> Unit): DoOtherwise

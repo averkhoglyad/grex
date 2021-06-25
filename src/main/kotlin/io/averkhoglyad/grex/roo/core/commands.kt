@@ -2,62 +2,66 @@ package io.averkhoglyad.grex.roo.core
 
 import io.averkhoglyad.grex.framework.*
 
-// TODO: Create sealed class for simple commands and for statement
-typealias RooCommand = Command
+sealed class RooCommand {
+    abstract val compile: SubprogramBuilder.() -> Unit
 
-enum class AtomicCommand : RooCommand {
-
-    JUMP {
-        override fun compile(): Iterable<CodePoint> {
-            val code: CodePoint = BoardModify {
-                val point = (board as RooBoard).hero.step()
-                if (point !in board) {
-                    throw CollisionException()
-                }
-                board.modify {
-                    hero {
-                        state(RooState.JUMP)
-                        moveTo(point)
+    object Jump : RooCommand() {
+        override val compile: SubprogramBuilder.() -> Unit = {
+            eval {
+                val code: CodePoint = BoardModify {
+                    val point = (board as RooBoard).hero.step()
+                    if (point !in board) {
+                        throw CollisionException()
+                    }
+                    board.modify {
+                        hero {
+                            state(RooState.JUMP)
+                            moveTo(point)
+                        }
                     }
                 }
+                listOf(code)
             }
-            return listOf(code)
         }
-    },
+    }
 
-    STEP {
-        override fun compile(): Iterable<CodePoint> {
-            val code: CodePoint = BoardModify {
-                val point = (board as RooBoard).hero.step()
-                if (point !in board) {
-                    throw CollisionException()
-                }
-                board.modify {
-                    hero {
-                        state(RooState.STEP)
-                        moveTo(point)
+    object Step : RooCommand() {
+        override val compile: SubprogramBuilder.() -> Unit = {
+            eval {
+                val code: CodePoint = BoardModify {
+                    val point = (board as RooBoard).hero.step()
+                    if (point !in board) {
+                        throw CollisionException()
                     }
-                    unit {
-                        place(Line(board.hero.position, point))
+                    board.modify {
+                        hero {
+                            state(RooState.STEP)
+                            moveTo(point)
+                        }
+                        unit {
+                            place(Line(board.hero.position, point))
+                        }
                     }
                 }
+                listOf(code)
             }
-            return listOf(code)
         }
-    },
+    }
 
-    TURN {
-        override fun compile(): Iterable<CodePoint> {
-            val code: CodePoint = BoardModify<Roo, RooState> {
-                (board as RooBoard).modify {
-                    hero {
-                        rotate(board.hero.turn())
+    object Turn : RooCommand() {
+        override val compile: SubprogramBuilder.() -> Unit = {
+            eval {
+                val code: CodePoint = BoardModify {
+                    (board as RooBoard).modify {
+                        hero {
+                            rotate(board.hero.turn())
+                        }
                     }
                 }
+                listOf(code)
             }
-            return listOf(code)
         }
-    };
+    }
 }
 
 enum class BorderCondition : Condition<ExecutionFrame> {
