@@ -3,25 +3,19 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 group = "net.averkhoglyad"
 version = "1.0-SNAPSHOT"
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath(kotlin("gradle-plugin", version = "1.5.10"))
-    }
+repositories {
+    mavenCentral()
 }
 
 plugins {
-    kotlin("jvm") version "1.5.10"
+    kotlin("jvm") version "1.5.20"
     id("org.openjfx.javafxplugin") version "0.0.10"
     id("io.spring.dependency-management") version "1.0.1.RELEASE"
+    application
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.apache.logging.log4j:log4j-bom:2.14.1")
-    }
+application {
+    mainClass.set("net.averkhoglyad.grex.roo.MainKt")
 }
 
 javafx {
@@ -31,8 +25,10 @@ javafx {
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
 
-repositories {
-    mavenCentral()
+dependencyManagement {
+    imports {
+        mavenBom("org.apache.logging.log4j:log4j-bom:2.14.1")
+    }
 }
 
 dependencies {
@@ -45,18 +41,10 @@ dependencies {
     implementation("no.tornado:tornadofx-controlsfx:0.1.1")
     implementation("org.controlsfx:controlsfx:11.1.0")
 
-    implementation("org.slf4j:slf4j-api:1.7.30")
+    implementation("org.slf4j:slf4j-api:1.7.31")
     implementation("org.slf4j:jul-to-slf4j:1.7.31")
-    runtimeOnly("ch.qos.logback:logback-classic:1.2.3")
-    runtimeOnly("org.apache.logging.log4j:log4j-api")
+    implementation("org.apache.logging.log4j:log4j-api")
+    
     runtimeOnly("org.apache.logging.log4j:log4j-core")
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl")
 }
-
-//repositories {
-//    maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
-//    mavenCentral()
-//}
-//
-//dependencies {
-//    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-//}
