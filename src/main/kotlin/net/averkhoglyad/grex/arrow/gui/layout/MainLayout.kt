@@ -3,19 +3,15 @@ package net.averkhoglyad.grex.arrow.gui.layout
 import net.averkhoglyad.grex.arrow.core.model.ArrowDirection
 import net.averkhoglyad.grex.arrow.core.model.Arrow
 import net.averkhoglyad.grex.arrow.gui.view.BoardView
-import net.averkhoglyad.grex.arrow.gui.view.ProgramView
+import net.averkhoglyad.grex.arrow.gui.view.EditorView
 import javafx.geometry.Pos
-import javafx.scene.control.Alert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.launch
-import net.averkhoglyad.grex.arrow.core.model.lines
-import net.averkhoglyad.grex.arrow.core.model.writeTo
 import net.averkhoglyad.grex.arrow.core.program.compile
 import net.averkhoglyad.grex.arrow.gui.data.*
 import net.averkhoglyad.grex.arrow.gui.util.consumeCloseRequest
@@ -24,14 +20,13 @@ import net.averkhoglyad.grex.framework.board.Point
 import net.averkhoglyad.grex.framework.code.CommandPoint
 import net.averkhoglyad.grex.framework.execution.execution
 import tornadofx.*
-import java.nio.file.Paths
 
 private const val DEFAULT_MIN_WIDTH = 1024.0
 private const val DEFAULT_MIN_HEIGHT = 720.0
 
 class MainLayout : View("Arrow") {
 
-    private val programView by inject<ProgramView>()
+    private val editorView by inject<EditorView>()
     private val boardView by inject<BoardView>()
 
     override val root = borderpane {
@@ -50,7 +45,7 @@ class MainLayout : View("Arrow") {
             }
         }
         left {
-            this += programView
+            this += editorView
         }
         center {
             scrollpane {
@@ -83,7 +78,7 @@ class MainLayout : View("Arrow") {
         // TODO: Move compilation logic to controller
         val program = compile(createEmptyBoard()) {
             var cb = it
-            programView.program
+            editorView.program
                 .filterNotNull()
                 .forEachIndexed { index, line ->
                     require(line.isValidProperty.get()) { "Invalid line ${index + 1}" }
