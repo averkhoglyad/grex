@@ -12,6 +12,7 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.launch
+import net.averkhoglyad.grex.arrow.core.program.CompilationException
 import net.averkhoglyad.grex.arrow.core.program.compile
 import net.averkhoglyad.grex.arrow.gui.data.*
 import net.averkhoglyad.grex.arrow.gui.util.consumeCloseRequest
@@ -83,14 +84,20 @@ class MainLayout : View("Arrow") {
                 .forEachIndexed { index, line ->
                     require(line.isValidProperty.get()) { "Invalid line ${index + 1}" }
                     cb = when (line) {
-                        is IfLine -> cb.ifBlock(line.condition!!)
-                        is ElseLine -> cb.elseBlock()
-                        is WhileLine -> cb.whileBlock(line.condition!!)
-                        is EndBlockLine -> cb.close()
                         is JumpLine -> cb.jump()
                         is StepLine -> cb.step()
                         is TurnLine -> cb.turn()
-                        else -> cb
+
+                        is IfLine -> cb.ifBlock(line.condition!!)
+                        is ElseLine -> cb.elseBlock()
+                        is WhileLine -> cb.whileBlock(line.condition!!)
+
+                        is DefineLine -> cb.define(line.name)
+                        is InvokeLine -> cb.invoke(line.name)
+
+                        is EndBlockLine -> cb.close()
+
+                        else -> throw CompilationException("Unexpected line type")
                     }
                 }
         }

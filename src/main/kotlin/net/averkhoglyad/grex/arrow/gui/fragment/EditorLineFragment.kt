@@ -2,16 +2,10 @@ package net.averkhoglyad.grex.arrow.gui.fragment
 
 import javafx.beans.property.ReadOnlyBooleanWrapper
 import javafx.beans.property.ReadOnlyIntegerWrapper
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
-import net.averkhoglyad.grex.arrow.gui.data.IfLine
-import net.averkhoglyad.grex.arrow.gui.data.ProgramLine
-import net.averkhoglyad.grex.arrow.gui.data.WhileLine
-import net.averkhoglyad.grex.arrow.gui.fragment.line.BaseLabelFragment
-import net.averkhoglyad.grex.arrow.gui.fragment.line.IfBlockLabelFragment
-import net.averkhoglyad.grex.arrow.gui.fragment.line.SimpleCommandLabelFragment
-import net.averkhoglyad.grex.arrow.gui.fragment.line.WhileBlockLabelFragment
+import net.averkhoglyad.grex.arrow.gui.data.*
+import net.averkhoglyad.grex.arrow.gui.fragment.line.*
 import net.averkhoglyad.grex.arrow.gui.util.convert
 import tornadofx.*
 
@@ -66,6 +60,8 @@ class EditorLineFragment : ListCellFragment<ProgramLine?>() {
         return when (line) {
             is IfLine -> find<IfBlockLabelFragment>(mapOf(IfBlockLabelFragment::line to line))
             is WhileLine -> find<WhileBlockLabelFragment>(mapOf(WhileBlockLabelFragment::line to line))
+            is DefineLine -> find<DefineBlockLabelFragment>(mapOf(InvokeLabelFragment::line to line))
+            is InvokeLine -> find<InvokeLabelFragment>(mapOf(InvokeLabelFragment::line to line))
             else -> find<SimpleCommandLabelFragment>(mapOf(SimpleCommandLabelFragment::line to line))
         }
     }

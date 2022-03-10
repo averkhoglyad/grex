@@ -98,11 +98,15 @@ class EditorView : View() {
                 }
 
                 KeyCode.F8 -> { // Define
-                    // TODO: Define procedure
+                    val defineLine = DefineLine("", targetLevel)
+                    addProgramLine(targetPosition, defineLine)
+                    addProgramLine(targetPosition + 1, EndBlockLine(defineLine))
+                    selectionModel.select(targetPosition + 1)
                 }
 
                 KeyCode.F9 -> { // Invoke
-                    // TODO: Invoke procedure
+                    addProgramLine(targetPosition, InvokeLine("", targetLevel))
+                    selectionModel.select(targetPosition + 1)
                 }
 
                 KeyCode.DELETE -> { // Delete
