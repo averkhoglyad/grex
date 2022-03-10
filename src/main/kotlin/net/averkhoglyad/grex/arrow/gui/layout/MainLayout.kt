@@ -1,5 +1,6 @@
 package net.averkhoglyad.grex.arrow.gui.layout
 
+import javafx.beans.property.SimpleObjectProperty
 import net.averkhoglyad.grex.arrow.core.model.ArrowDirection
 import net.averkhoglyad.grex.arrow.core.model.Arrow
 import net.averkhoglyad.grex.arrow.gui.view.BoardView
@@ -19,6 +20,7 @@ import net.averkhoglyad.grex.arrow.gui.util.consumeCloseRequest
 import net.averkhoglyad.grex.framework.board.BoardImpl
 import net.averkhoglyad.grex.framework.board.Point
 import net.averkhoglyad.grex.framework.code.CommandPoint
+import net.averkhoglyad.grex.framework.execution.Executor
 import net.averkhoglyad.grex.framework.execution.execution
 import tornadofx.*
 
@@ -30,17 +32,39 @@ class MainLayout : View("Arrow") {
     private val editorView by inject<EditorView>()
     private val boardView by inject<BoardView>()
 
+    private var executionStateProperty = SimpleObjectProperty(ExecutionState.STOP)
+    private var executionState: ExecutionState by executionStateProperty
+
+    private var channel: Channel<Unit>? = null
+
     override val root = borderpane {
         top {
             toolbar {
                 button("Run") {
+                    disableWhen(executionStateProperty.isEqualTo(ExecutionState.RUN))
                     action {
-                        runProgram()
+                        if (executionState == ExecutionState.STOP) {
+                            runProgram()
+                        }
+                        executionState = ExecutionState.RUN
                     }
                 }
-                button("Reset") {
+                button("Pause") {
+                    enableWhen(executionStateProperty.isEqualTo(ExecutionState.RUN))
                     action {
-                        boardView.board = createEmptyBoard()
+                        executionState = ExecutionState.PAUSE
+                    }
+                }
+                button("Stop") {
+                    disableWhen(executionStateProperty.isEqualTo(ExecutionState.STOP))
+                    action {
+                        executionState = ExecutionState.STOP
+                    }
+                }
+                button("Clear") {
+                    enableWhen(executionStateProperty.isEqualTo(ExecutionState.STOP))
+                    action {
+                        boardView.reset()
                     }
                 }
             }
@@ -73,11 +97,20 @@ class MainLayout : View("Arrow") {
                 }
             }
         }
+
+        executionStateProperty.onChange {
+            when (it) {
+                ExecutionState.STOP -> channel!!.cancel()
+                ExecutionState.RUN -> GlobalScope.launch { channel!!.send(Unit) }
+                ExecutionState.PAUSE -> { /* nothing needed */ }
+            }
+        }
     }
 
     private fun runProgram() {
         // TODO: Move compilation logic to controller
-        val program = compile(createEmptyBoard()) {
+        boardView.reset()
+        val program = compile(boardView.board) {
             var cb = it
             editorView.program
                 .filterNotNull()
@@ -101,13 +134,12 @@ class MainLayout : View("Arrow") {
                     }
                 }
         }
-        boardView.board = program.board
 
         val channel = Channel<Unit>()
-        val executor = program.execution()
+        this.channel = channel
+        program.execution()
             .controlBy { ctrl ->
-                GlobalScope.launch(Dispatchers.IO) {
-                    ctrl.advanceNext() // Start execution
+                GlobalScope.launch {
                     channel.consumeEach { ctrl.advanceNext() } // Handle every next execution point
                 }
             }
@@ -117,14 +149,16 @@ class MainLayout : View("Arrow") {
                         delay(300)
                         boardView.handleTick()
                     }
-                    channel.send(Unit)
+                    if (executionState == ExecutionState.RUN) {
+                        channel.send(Unit)
+                    }
                 }
             }
             .onCatch {
                 error(it.message ?: "Unexpected execution error")
             }
             .onFinish {
-                channel.cancel()
+                executionState = ExecutionState.STOP
             }
             .execute()
     }
@@ -133,3 +167,9 @@ class MainLayout : View("Arrow") {
     private fun createEmptyBoard() = BoardImpl(20 to 16, Arrow(Point(0, 0), ArrowDirection.RIGHT))
 
 }
+
+private enum class ExecutionState {
+    STOP, RUN, PAUSE
+}
+
+private suspend fun Channel<Unit>.send() = this.send(Unit)

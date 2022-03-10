@@ -10,7 +10,7 @@ interface Executor {
     fun onEach(handler: (ExecutionPoint) -> Unit): Executor = this
     fun onCatch(handler: (ExecutionException) -> Unit): Executor = this
     fun onFinish(handler: () -> Unit): Executor = this
-    fun execute(): Executor
+    fun execute()
 }
 
 typealias ExecutionController = (ControlledExecution) -> Unit
@@ -50,53 +50,54 @@ private class ExecutorImpl(private val board: Board, private val code: List<Code
         return this
     }
 
-    override fun execute(): Executor {
+    override fun execute() {
+
+        val controlledExecution = ControlledExecutionImpl(ExecutionIterator(board, code))
         try {
-            val iterator = ExecutionIterator(board, code)
-            val controlledExecution = object : ControlledExecution {
-                override var current: ExecutionPoint?
-                    private set
-                override var finished = false
-                    private set
-                private var handle: () -> Unit = noop
-
-                init {
-                    val (executionPoint, fn) = iterator.next()
-                    current = executionPoint
-                    handle = fn
-                }
-
-                override fun advanceNext(): ExecutionPoint? {
-                    if (finished) {
-                        throw IllegalStateException("Execution is finished")
-                    }
-                    handle()
-                    onEachFn(current!!)
-                    if (iterator.hasNext()) {
-                        val (executionPoint, nextHandle) = iterator.next()
-                        current = executionPoint
-                        handle = nextHandle
-                        return executionPoint
-                    } else {
-                        current = null
-                        handle = noop
-                        finish()
-                        return null
-                    }
-                }
-
-                override fun finish() {
-                    finished = true
-                    onFinishFn()
-                }
-
-            }
             executionControllerFn(controlledExecution)
-
         } catch (ex: ExecutionException) {
             onCatchFn(ex)
+            controlledExecution.finish()
         }
-        return this
+    }
+
+    private inner class ControlledExecutionImpl : ControlledExecution {
+        private val iterator: Iterator<Pair<ExecutionPoint, () -> Unit>>
+        override var current: ExecutionPoint
+            private set
+        override var finished = false
+            private set
+        private var handle: () -> Unit
+
+        constructor(iterator: Iterator<Pair<ExecutionPoint, () -> Unit>>) {
+            this.iterator = iterator
+            this.handle = noop
+            val (executionPoint, fn) = iterator.next()
+            current = executionPoint
+            handle = fn
+        }
+
+        override fun advanceNext(): ExecutionPoint? {
+            if (finished) {
+                throw IllegalStateException("Execution is finished")
+            }
+            handle()
+            onEachFn(current!!)
+            if (iterator.hasNext()) {
+                val (executionPoint, nextHandle) = iterator.next()
+                current = executionPoint
+                handle = nextHandle
+                return executionPoint
+            }
+            finish()
+            return null
+        }
+
+        override fun finish() {
+            finished = true
+            onFinishFn()
+        }
+
     }
 }
 

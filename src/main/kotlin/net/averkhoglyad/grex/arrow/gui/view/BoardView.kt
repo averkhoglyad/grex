@@ -24,8 +24,7 @@ private const val ARROW_SIZE = 20.0
 
 class BoardView : View() {
 
-    private val boardProperty = SimpleObjectProperty<Board>(BoardImpl(20 to 16, Arrow(Point(0, 0), ArrowDirection.RIGHT)))
-    var board: Board by boardProperty
+    val board: Board = createBoard()
 
     private val arrowImage: ImageView = imageview(resources.image("/img/arrow.png")) {
         fitWidth = ARROW_SIZE
@@ -50,16 +49,20 @@ class BoardView : View() {
     }
 
     init {
+        unitsPane.children.clear()
+        boardPane.children.clear()
+        boardPane.generateCells(board)
+        this += boardPane
+        this += arrowImage
         positionArrow()
-        boardProperty.onChange {
-            it ?: throw NullPointerException()
-            unitsPane.children.clear()
-            boardPane.children.clear()
-            boardPane.generateCells(it)
-            this += boardPane
-            this += arrowImage
-            positionArrow()
-        }
+    }
+
+    fun reset() {
+        val arrow = board.arrow.reset()
+        board.clear()
+        board.putUnit(arrow)
+        unitsPane.children.clear()
+        positionArrow()
     }
 
     fun handleTick() {
@@ -132,3 +135,11 @@ private fun LineFx.placeInto(start: Node, end: Node) {
 }
 
 private fun Node.center(): Pair<DoubleBinding, DoubleBinding> = (layoutXProperty() + boundsInParent.width / 2) to (layoutYProperty() + boundsInParent.height / 2)
+
+private fun createBoard(): Board = BoardImpl(20 to 16, Arrow(Point(0, 0), ArrowDirection.RIGHT))
+
+private fun Arrow.reset(): Arrow {
+    this.position = Point(0, 0)
+    this.direction = ArrowDirection.RIGHT
+    return this
+}

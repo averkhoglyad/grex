@@ -26,6 +26,8 @@ interface Board {
     val units: List<BoardUnit>
     operator fun contains(point: Point) = (point.x in 0..size.first) && (point.y in 0..size.second)
     fun putUnit(unit: BoardUnit)
+    fun dropUnit(unit: BoardUnit)
+    fun clear()
 }
 
 // Lookup helper methods
@@ -53,5 +55,13 @@ class BoardImpl(size: Pair<Int, Int>, vararg units: BoardUnit) : Board {
         require(unit.boundary.first in this) { "Boundary of the unit is outside the board" }
         require(unit.boundary.second in this) { "Boundary of the unit is outside the board" }
         this._units.add(unit)
+    }
+
+    override fun dropUnit(unit: BoardUnit) {
+        this._units.remove(unit)
+    }
+
+    override fun clear() {
+        this._units.clear()
     }
 }
