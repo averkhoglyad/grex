@@ -9,13 +9,13 @@ abstract class BaseLabelFragment : Fragment() {
 
     val line: ProgramLine by param()
 
+    // Must be created here to apply padding based on line's level
     override val root = createRoot()
 
     init {
-        root.apply {
-            paddingLeft = line.level * 15.0
-        }
+        root.paddingLeft = line.level * 15.0
     }
 
     protected abstract fun createRoot(): Region
+
 }

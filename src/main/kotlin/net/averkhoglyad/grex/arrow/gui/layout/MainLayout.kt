@@ -1,5 +1,6 @@
 package net.averkhoglyad.grex.arrow.gui.layout
 
+import javafx.application.Application
 import javafx.beans.property.SimpleObjectProperty
 import net.averkhoglyad.grex.arrow.core.model.ArrowDirection
 import net.averkhoglyad.grex.arrow.core.model.Arrow
@@ -101,7 +102,7 @@ class MainLayout : View("Arrow") {
         executionStateProperty.onChange {
             when (it) {
                 ExecutionState.STOP -> channel!!.cancel()
-                ExecutionState.RUN -> GlobalScope.launch { channel!!.send(Unit) }
+                ExecutionState.RUN -> GlobalScope.launch { channel!!.send() }
                 ExecutionState.PAUSE -> { /* nothing needed */ }
             }
         }
@@ -113,8 +114,8 @@ class MainLayout : View("Arrow") {
         val program = compile(boardView.board) {
             var cb = it
             editorView.program
-                .filterNotNull()
                 .forEachIndexed { index, line ->
+                    if (line == null) return@forEachIndexed
                     require(line.isValidProperty.get()) { "Invalid line ${index + 1}" }
                     cb = when (line) {
                         is JumpLine -> cb.jump()
@@ -138,19 +139,15 @@ class MainLayout : View("Arrow") {
         val channel = Channel<Unit>()
         this.channel = channel
         program.execution()
-            .controlBy { ctrl ->
-                GlobalScope.launch {
-                    channel.consumeEach { ctrl.advanceNext() } // Handle every next execution point
-                }
-            }
+            .controlBy(channel)
             .onEach {
                 GlobalScope.launch(Dispatchers.JavaFx) {
                     if (it.pointType == CommandPoint::class) {
-                        delay(300)
+                        delay(500)
                         boardView.handleTick()
                     }
                     if (executionState == ExecutionState.RUN) {
-                        channel.send(Unit)
+                        channel.send()
                     }
                 }
             }
@@ -162,10 +159,6 @@ class MainLayout : View("Arrow") {
             }
             .execute()
     }
-
-    // TODO: must be encapsulated because is used in BoardView too!
-    private fun createEmptyBoard() = BoardImpl(20 to 16, Arrow(Point(0, 0), ArrowDirection.RIGHT))
-
 }
 
 private enum class ExecutionState {

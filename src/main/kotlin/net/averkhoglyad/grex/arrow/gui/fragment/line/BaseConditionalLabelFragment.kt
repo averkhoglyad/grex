@@ -19,7 +19,7 @@ abstract class BaseConditionalLabelFragment : BaseLabelFragment() {
     private val layoutPosition: Pair<Double, Double> by lazy { calculateLayoutPosition() }
 
     override fun createRoot() = textflow {
-        label(getLabelText())
+        label(labelText())
         label("(") {
             paddingLeft = 10
             paddingRight = 5
@@ -32,7 +32,7 @@ abstract class BaseConditionalLabelFragment : BaseLabelFragment() {
         }
     }
 
-    protected abstract fun getLabelText(): String
+    protected abstract fun labelText(): String
 
     private val conditionMenu: ContextMenu = ContextMenu().apply {
         conditionItem(BorderCondition.IS_BORDER)

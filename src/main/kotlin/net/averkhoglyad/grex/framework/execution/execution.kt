@@ -1,5 +1,9 @@
 package net.averkhoglyad.grex.framework.execution
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import net.averkhoglyad.grex.framework.board.Board
 import net.averkhoglyad.grex.framework.code.*
 
@@ -7,6 +11,7 @@ fun Program.execution(): Executor = ExecutorImpl(board, code)
 
 interface Executor {
     fun controlBy(fn: ExecutionController): Executor
+    fun controlBy(channel: Channel<Unit>): Executor
     fun onEach(handler: (ExecutionPoint) -> Unit): Executor = this
     fun onCatch(handler: (ExecutionException) -> Unit): Executor = this
     fun onFinish(handler: () -> Unit): Executor = this
@@ -16,7 +21,7 @@ interface Executor {
 typealias ExecutionController = (ControlledExecution) -> Unit
 
 interface ControlledExecution {
-    val current: ExecutionPoint?
+    val current: ExecutionPoint
     val finished: Boolean
 
     fun advanceNext(): ExecutionPoint?
@@ -32,6 +37,13 @@ private class ExecutorImpl(private val board: Board, private val code: List<Code
 
     override fun controlBy(fn: ExecutionController): Executor {
         executionControllerFn = fn
+        return this
+    }
+
+    override fun controlBy(channel: Channel<Unit>): Executor {
+        executionControllerFn = {
+            GlobalScope.launch { channel.consumeEach { _ -> it.advanceNext() } }
+        }
         return this
     }
 
@@ -82,7 +94,7 @@ private class ExecutorImpl(private val board: Board, private val code: List<Code
                 throw IllegalStateException("Execution is finished")
             }
             handle()
-            onEachFn(current!!)
+            onEachFn(current)
             if (iterator.hasNext()) {
                 val (executionPoint, nextHandle) = iterator.next()
                 current = executionPoint
